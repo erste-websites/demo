@@ -464,3 +464,38 @@ document.addEventListener('DOMContentLoaded', () => {
     window.location.href = 'thankyou.html';
   });
 });
+
+ this.tidio = window.tidioIntegrationApi; // Tidio integration
+  }
+
+  // ADD THESE NEW METHODS
+  trackCartUpdate() {
+    if (!this.tidio) return;
+    
+    // Send cart data to Tidio
+    this.tidio.setVisitorData({
+      cart: JSON.stringify(this.cart),
+      cart_total: this.cart.reduce((sum, item) => sum + (item.price * item.quantity), 0)
+    });
+    
+    // Trigger cart updated event
+    this.tidio.event("cart_updated");
+  }
+
+  trackPurchase() {
+    if (!this.tidio) return;
+    this.tidio.event("purchase_completed");
+  }
+
+await this.saveCart();
+    this.trackCartUpdate(); // <-- ADD THIS LINE
+    this.updateCartCounter();
+    this.showAddFeedback(button);
+  }
+
+  handleCheckout() {
+    this.trackCartUpdate(); // Update cart status before checkout
+    window.location.href = 'checkout.html';
+  }
+}
+
