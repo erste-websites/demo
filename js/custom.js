@@ -76,7 +76,6 @@ class CartSystem {
   constructor() {
     this.cart = this.getSafeCart();
     this.handlers = {};
-    this.tidio = window.tidioIntegrationApi; // Tidio integration	  
     this.init();
   }
 
@@ -197,7 +196,6 @@ class CartSystem {
     }
 
     await this.saveCart();
-    this.trackCartUpdate();
     this.updateCartCounter();
     this.showAddFeedback(button);
   }
@@ -320,22 +318,6 @@ updateTotals() {
     return temp.innerHTML;
   }
 
-  trackCartUpdate() {
-  if (!this.tidio) return;
-  
-  this.tidio.setVisitorData({
-    cart: JSON.stringify(this.cart),
-    cart_total: this.cart.reduce((sum, item) => sum + (item.price * item.quantity), 0)
-  });
-  
-  this.tidio.event("cart_updated");
-}
-
-trackPurchase() {
-  if (!this.tidio) return;
-  this.tidio.event("purchase_completed");
-}	
-
   removeItem(index) {
     if (index >= 0 && index < this.cart.length) {
       this.cart.splice(index, 1);
@@ -354,7 +336,6 @@ trackPurchase() {
   }
 
   handleCheckout() {
-    this.trackCartUpdate();	  
     window.location.href = 'checkout.html';
   }
 }
@@ -368,18 +349,6 @@ document.addEventListener('DOMContentLoaded', () => {
 if (document.getElementById('checkoutForm')) {
   document.getElementById('checkoutForm').addEventListener('submit', function(e) {
     e.preventDefault();
-    document.getElementById('checkoutForm').addEventListener('submit', function(e) {
-  e.preventDefault();
-  
-  // ADD THESE LINES
-  if (window.tidioIntegrationApi) {
-    tidioIntegrationApi.event("purchase_completed");
-  }
-
-  localStorage.removeItem('cart');
-  alert('Thank you for your purchase!');
-  window.location.href = 'index.html';
-});	  
     localStorage.removeItem('cart');
     alert('Thank you for your purchase!');
     window.location.href = 'index.html';
