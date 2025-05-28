@@ -77,6 +77,7 @@ class CartSystem {
     this.cart = this.getSafeCart();
     this.handlers = {};
     this.init();
+    this.setupTidioTracking(); // Initialize Tidio tracking
   }
 
   // Safe localStorage parsing
@@ -155,6 +156,7 @@ class CartSystem {
 
     await this.saveCart();
     this.renderCart();
+    this.dispatchCartUpdated(); // ADDED: Track cart update	  
   }
 
   validateCartItem(item) {
@@ -196,6 +198,7 @@ class CartSystem {
     }
 
     await this.saveCart();
+    this.dispatchCartUpdated(); // ADDED: Track cart update	  
     this.updateCartCounter();
     this.showAddFeedback(button);
   }
@@ -322,6 +325,7 @@ updateTotals() {
     if (index >= 0 && index < this.cart.length) {
       this.cart.splice(index, 1);
       this.saveCart();
+      this.dispatchCartUpdated(); // ADDED: Track cart update	    
       this.renderCart();
       this.toggleStates();
     }
@@ -339,6 +343,67 @@ updateTotals() {
     window.location.href = 'checkout.html';
   }
 }
+
+ dispatchCartUpdated() {
+    const event = new Event('cartUpdated');
+    document.dispatchEvent(event);
+  }
+
+  setupTidioTracking() {
+    // Wait for Tidio to be ready
+    if (window.tidioChatApi) {
+      this.initTidioAbandonedCart();
+    } else {
+      document.addEventListener('tidioChat-ready', () => this.initTidioAbandonedCart());
+    }
+  }
+
+  initTidioAbandonedCart() {
+    // Configuration - UPDATE THESE URLs
+    const checkoutSteps = [
+      "https://erste-websites.github.io/demo/cart.html",
+      "https://erste-websites.github.io/demo/checkout.html"
+    ];
+    
+    const checkoutFinished = [
+      "https://erste-websites.github.io/demo/thankyou.html"
+    ];
+	  
+// Event listeners
+    document.addEventListener('cartUpdated', () => {
+      if (!this.getCookie('tidioStartUrlVisited')) {
+        this.setCookie('tidioStartUrlVisited', '1', '10');
+      }
+    });
+
+    document.addEventListener('purchaseCompleted', () => {
+      this.setCookie('tidioStartUrlVisited', '', -1);
+    });
+
+    // Initial check
+    this.checkUrlForAbandonment(window.location.href, checkoutSteps, checkoutFinished);
+    
+    // Monitor URL changes
+    this.monitorUrlChanges(checkoutSteps, checkoutFinished);
+  }
+
+  checkUrlForAbandonment(currentUrl, checkoutSteps, checkoutFinished) {
+    const cookieName = 'tidioStartUrlVisited';
+    const cookieValue = this.getCookie(cookieName);
+    const normalizedUrl = currentUrl.replace(/\/$/, "");
+    
+    if (checkoutSteps.includes(currentUrl) || checkoutSteps.includes(normalizedUrl)) {
+      this.setCookie(cookieName, '1', '10');
+      return true;
+    }
+    
+    if (cookieValue && cookieValue === '1') {
+      if (!checkoutFinished.includes(currentUrl) && !checkoutFinished.includes(normalizedUrl)) {
+        this.trackAbandonedCart();
+      }
+      this.setCookie(cookieName, '', -1);
+    }
+  }
 
 // Initialize cart system after DOM load
 document.addEventListener('DOMContentLoaded', () => {
