@@ -469,12 +469,12 @@ document.addEventListener('DOMContentLoaded', () => {
     function onTidioChatApiReady() {
       // below is the list which starts the abandoned cart process. If some of the steps will be missed, and the visitor doesn't land on the page given in "checkoutFinished" - abandoned cart will be triggered.
       var checkoutSteps = [
-        "http://erste-websites.github.io/demo/cart.html", // checkout step 1
-        "http://erste-websites.github.io/demo/checkout.html", // checkout step 2
+        "https://erste-websites.github.io/demo/cart.html", // checkout step 1
+        "https://erste-websites.github.io/demo/checkout.html", // checkout step 2
       ];
       // below is the list which clears the abandon cart process without triggering it
       var checkoutFinished = [
-        "http://erste-websites.github.io/demo/thankyou.html" // the purchase page
+        "https://erste-websites.github.io/demo/thankyou.html" // the purchase page
       ];
       // do not modify the code below
       function executeTidioChatApiTrack() {
